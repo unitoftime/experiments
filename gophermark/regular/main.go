@@ -11,6 +11,8 @@ import (
 	"image/draw"
 	_ "image/png"
 
+	"github.com/faiface/mainthread"
+
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/unitoftime/gl"
 	"github.com/unitoftime/glfw"
@@ -36,16 +38,19 @@ func loadImage(path string) (*image.NRGBA, error) {
 }
 
 func main() {
-	err := run()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	mainthread.Run(run)
 }
 
 var width int = 1920
 var height int = 1080
 
-func run() error {
+func run() {
+	mainthread.Call(func() {
+		gophermark()
+	})
+}
+
+func gophermark() {
 	// ------------
 	// Setup Window
 	// ------------
@@ -76,7 +81,7 @@ func run() error {
 	// ------------
 	program, err := glutil.CreateProgram(vertexSource, fragmentSource)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	mesh := NewMesh()
@@ -176,7 +181,6 @@ func run() error {
 	// for i := range times {
 	// 	log.Println(times[i].Count, 1000 * times[i].Time.Seconds())
 	// }
-	return err
 }
 
 type Frame struct {
