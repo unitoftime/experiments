@@ -49,6 +49,18 @@ func NewCollection(n int) *Collection {
 	return &c
 }
 
+// ------ Raw for loop ------
+func BenchmarkArrayLike(b *testing.B) {
+	c := NewCollection(1e6)
+	b.ResetTimer()
+	l := c.Len()
+	for i := 0; i < b.N; i++ {
+		for n := 0; n < l; n++ {
+			c.items[n] = c.items[n] + 1 // Do something
+		}
+	}
+}
+
 // ------ Array-style accessors ------
 
 // ValueAt returns the Nth item.
@@ -56,19 +68,12 @@ func (c *Collection) ValueAt(n int) int {
 	return c.items[len(c.items)-n-1] // let it panic if out of bounds
 }
 
+func (c *Collection) SetValue(n int) int {
+	c.items[len(c.items)-n-1] // let it panic if out of bounds
+}
+
 // Len returns the number of items in the collection
 func (c *Collection) Len() int { return len(c.items) }
-
-// Tests
-
-func ExampleArrayLike() {
-	c := NewCollection(5)
-	for i := 0; i < c.Len(); i++ {
-		fmt.Printf("%d ", c.ValueAt(i))
-	}
-	// Output:
-	// 1 2 3 4 5
-}
 
 func BenchmarkArrayLike(b *testing.B) {
 	c := NewCollection(1e6)
@@ -76,7 +81,7 @@ func BenchmarkArrayLike(b *testing.B) {
 	l := c.Len()
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < l; n++ {
-			_ = c.ValueAt(n)
+			c.SetValue(n, c.ValueAt(n) + 1)
 		}
 	}
 }
@@ -119,37 +124,6 @@ func (c *Collection) ClosureIter3() (next func() (int, error)) {
 }
 
 // Tests
-
-func ExampleClosure() {
-	c := NewCollection(5)
-	for next, hasNext := c.ClosureIter(); hasNext; {
-		var v int
-		v, hasNext = next()
-		fmt.Printf("%d ", v)
-	}
-	// Output:
-	// 1 2 3 4 5
-}
-
-func ExampleClosure2() {
-	c := NewCollection(5)
-	for next, hasNext := c.ClosureIter2(); hasNext(); {
-		fmt.Printf("%d ", next())
-	}
-	// Output:
-	// 1 2 3 4 5
-}
-
-func ExampleClosure3() {
-	c := NewCollection(5)
-	iter := c.ClosureIter3()
-	for v, err := iter(); err == nil; v, err = iter() {
-		fmt.Printf("%d ", v)
-	}
-	// Output:
-	// 1 2 3 4 5
-}
-
 func BenchmarkClosure(b *testing.B) {
 	c := NewCollection(1e6)
 	b.ResetTimer()
