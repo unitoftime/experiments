@@ -68,23 +68,23 @@ func (c *Collection) ValueAt(n int) int {
 	return c.items[len(c.items)-n-1] // let it panic if out of bounds
 }
 
-func (c *Collection) SetValue(n int) int {
-	c.items[len(c.items)-n-1] // let it panic if out of bounds
-}
+// func (c *Collection) SetValue(n int) int {
+// 	c.items[len(c.items)-n-1] // let it panic if out of bounds
+// }
 
 // Len returns the number of items in the collection
 func (c *Collection) Len() int { return len(c.items) }
 
-func BenchmarkArrayLike(b *testing.B) {
-	c := NewCollection(1e6)
-	b.ResetTimer()
-	l := c.Len()
-	for i := 0; i < b.N; i++ {
-		for n := 0; n < l; n++ {
-			c.SetValue(n, c.ValueAt(n) + 1)
-		}
-	}
-}
+// func BenchmarkArrayLike(b *testing.B) {
+// 	c := NewCollection(1e6)
+// 	b.ResetTimer()
+// 	l := c.Len()
+// 	for i := 0; i < b.N; i++ {
+// 		for n := 0; n < l; n++ {
+// 			c.SetValue(n, c.ValueAt(n) + 1)
+// 		}
+// 	}
+// }
 
 // ------ Closure iterators ------
 
