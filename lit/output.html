@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>This is the Title</title>
+
+<!-- Pick other themes here: https://highlightjs.org/static/demo/ -->
+<link rel="stylesheet"
+      href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark-reasonable.min.css">
+<script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<link href="main.css" rel="preload stylesheet" as="style">
+
+<link href="modest.css" rel="preload stylesheet" as="style">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<header class="header">
+  <div class="wrapper">
+    <nav class="logo">
+      <a href="#">Header</a>
+    </nav>
+    <nav class="nav">
+      <a href="#">Link0</a>
+      <a href="#">Link1</a>
+      <a href="#">Link2</a>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+<h1>main</h1>
+
+<p>// Test package comment2</p>
+
+<p>// I was curious if I could create something that parses this repo, and generates blog-style pages representing all of the test cases and code, documented via comment blogs. Let&rsquo;s give it a shot. I think I&rsquo;ll have to do some Abstract-Syntax-Tree (AST) crawling, and then template the data into either markdown, or HTML templates. Not sure which yet. I may have to come back here and see if I there is a markdown -&gt; HTML converter package in Go that I&rsquo;d be willing to use.</p>
+
+<p>I was curious if I could create something that parses this repo, and generates blog-style pages representing all of the test cases and code, documented via comment blogs. Let&rsquo;s give it a shot. I think I&rsquo;ll have to do some Abstract-Syntax-Tree (AST) crawling, and then template the data into either markdown, or HTML templates. Not sure which yet. I may have to come back here and see if I there is a markdown -&gt; HTML converter package in Go that I&rsquo;d be willing to use.</p>
+
+<pre><code class="language-go">// I was curious if I could create something that parses this repo, and generates blog-style pages representing all of the test cases and code, documented via comment blogs. Let's give it a shot. I think I'll have to do some Abstract-Syntax-Tree (AST) crawling, and then template the data into either markdown, or HTML templates. Not sure which yet. I may have to come back here and see if I there is a markdown -&gt; HTML converter package in Go that I'd be willing to use.
+import (
+  // First we need to import some packages that can do file reading and writing
+  &quot;bytes&quot;
+  &quot;fmt&quot;
+  &quot;io/fs&quot;
+  &quot;os&quot;
+
+  // Import some packages that do AST crawling and formatting the output
+  &quot;go/ast&quot;
+  &quot;go/parser&quot;
+  &quot;go/printer&quot;
+  &quot;go/token&quot;
+
+  // I also probably at least one package to convert to HTML. I ended up going with markdown -&gt; HTML
+  &quot;github.com/russross/blackfriday/v2&quot; // Test comment
+
+  // We will also embed some other template-type files into this binary
+  _ &quot;embed&quot;
+)
+</code></pre>
+
+<p>// This comment is inbetween stuff!</p>
+
+<p>// So we are going to define an HTML header file which is used to generate the top of an HTML page</p>
+
+<p>//go:embed header.html</p>
+
+<p>So we are going to define an HTML header file which is used to generate the top of an HTML page</p>
+
+<pre><code class="language-go">// So we are going to define an HTML header file which is used to generate the top of an HTML page
+//go:embed header.html
+var htmlHeader string
+</code></pre>
+
+<p>// We will also add an HTML footer file to cap off the other end.</p>
+
+<p>//go:embed footer.html</p>
+
+<p>We will also add an HTML footer file to cap off the other end.</p>
+
+<pre><code class="language-go">// We will also add an HTML footer file to cap off the other end.
+//go:embed footer.html
+var htmlFooter string
+</code></pre>
+
+<p>// Let&rsquo;s have a main function that just wraps some high level logic that we will write below</p>
+
+<p>Let&rsquo;s have a main function that just wraps some high level logic that we will write below</p>
+
+<pre><code class="language-go">func main() {
+  generatePackage(&quot;.&quot;)
+}
+</code></pre>
+
+<p>/*
+This is a block comment do describe this function. This function does
+the bulk of the work, deciding which nodes to print.
+*/</p>
+
+<p>This is a block comment do describe this function. This function does
+the bulk of the work, deciding which nodes to print.</p>
+
+<pre><code class="language-go">func generatePackage(dir string) {
+  fset := token.NewFileSet()
+  packages, err := parser.ParseDir(fset, dir, nil, parser.ParseComments)
+  if err != nil {
+    panic(err)
+  }
+
+  for k, pkg := range packages {
+    fmt.Println(k, pkg.Name)
+
+    var buf bytes.Buffer
+    buf.WriteString(fmt.Sprintf(&quot;# %s&quot;, pkg.Name))
+    for _, file := range pkg.Files {
+      lastCommentPos := file.Pos()
+      cmap := ast.NewCommentMap(fset, file, file.Comments)
+      // file.Comments = cmap.Filter(file).Comments()
+
+      // ast.Print(fset, file)
+
+      for _, decl := range file.Decls {
+        // Add any comments that are in this range from the comment map into the output file
+        // Notably, file.Comments is already in order for us so we don't need to sort it!
+        for _, cgroup := range file.Comments {
+          for _, c := range cgroup.List {
+
+            // Our current comment needs to be after the `lastCommentPos` and before the next declaration pos
+            if c.Slash &gt; lastCommentPos &amp;&amp; c.Slash &lt; decl.Pos() {
+              buf.WriteString(fmt.Sprintf(&quot;\n\n%s\n\n&quot;, c.Text))
+            }
+          }
+        }
+        // We set the lastCommentPos to the end of the current declaration.
+        // This is because we handle comments in the declaration a different way,
+        // so we want to skip those too.
+        lastCommentPos = decl.End()
+
+        switch d := decl.(type) {
+        case *ast.FuncDecl:
+          cgroups := cmap.Filter(d).Comments()
+          buf.WriteString(&quot;\n&quot; + d.Doc.Text() + &quot;\n&quot;) // line comment
+          formatFunc(&amp;buf, fset, *d, cgroups)
+
+        case *ast.GenDecl:
+          cgroups := cmap.Filter(d).Comments()
+          buf.WriteString(&quot;\n&quot; + d.Doc.Text() + &quot;\n&quot;)
+          formatGen(&amp;buf, fset, *d, cgroups)
+        }
+      }
+    }
+
+    markdown := blackfriday.Run(buf.Bytes())
+
+    err := os.WriteFile(&quot;output.html&quot;, []byte(htmlHeader), fs.ModePerm)
+    if err != nil {
+      panic(err)
+    }
+
+    file, err := os.OpenFile(&quot;output.html&quot;, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+    if err != nil {
+      panic(err)
+    }
+
+    _, err = file.Write(markdown)
+    if err != nil {
+      panic(err)
+    }
+
+    _, err = file.Write([]byte(htmlFooter))
+    if err != nil {
+      panic(err)
+    }
+  }
+}
+</code></pre>
+
+<pre><code class="language-go">func formatFunc(buf *bytes.Buffer, fset *token.FileSet, decl ast.FuncDecl, cGroups []*ast.CommentGroup) {
+  decl.Doc = nil // nil the Doc field so that we don't print it
+  buf.WriteString(&quot;\n```go\n&quot;)
+  commentedNode := printer.CommentedNode{
+    Node:     &amp;decl,
+    Comments: cGroups,
+  }
+  formatNode(buf, fset, &amp;commentedNode)
+  buf.WriteString(&quot;\n```\n&quot;)
+}
+</code></pre>
+
+<pre><code class="language-go">func formatGen(buf *bytes.Buffer, fset *token.FileSet, decl ast.GenDecl, cGroups []*ast.CommentGroup) {
+
+  // decl.Doc = nil // nil the Doc field so that we don't print it
+  commentedNode := printer.CommentedNode{
+    Node:     &amp;decl,
+    Comments: cGroups,
+  }
+
+  if decl.Tok == token.IMPORT {
+    buf.WriteString(&quot;\n```go\n&quot;)
+    formatNode(buf, fset, &amp;commentedNode)
+    buf.WriteString(&quot;\n```\n&quot;)
+  } else if decl.Tok == token.TYPE {
+    buf.WriteString(&quot;\n```go\n&quot;)
+    formatNode(buf, fset, &amp;commentedNode)
+    buf.WriteString(&quot;\n```\n&quot;)
+  } else if decl.Tok == token.CONST || decl.Tok == token.VAR {
+    buf.WriteString(&quot;\n```go\n&quot;)
+    formatRawNode(buf, fset, &amp;commentedNode)
+    buf.WriteString(&quot;\n```\n&quot;)
+  }
+}
+</code></pre>
+
+<pre><code class="language-go">func formatRawNode(buf *bytes.Buffer, fset *token.FileSet, node any) {
+  config := printer.Config{
+    Mode:     printer.RawFormat,
+    Tabwidth: 2,
+  }
+  err := config.Fprint(buf, fset, node)
+  if err != nil {
+    panic(err)
+  }
+}
+</code></pre>
+
+<p>// node can be either a commented node or a node supported by fprintf</p>
+
+<p>node can be either a commented node or a node supported by fprintf</p>
+
+<pre><code class="language-go">func formatNode(buf *bytes.Buffer, fset *token.FileSet, node any) {
+  config := printer.Config{
+    Mode:     printer.UseSpaces,
+    Tabwidth: 2,
+  }
+  err := config.Fprint(buf, fset, node)
+  if err != nil {
+    panic(err)
+  }
+}
+</code></pre>
+</main>
+
+<footer class="footer">
+  <span>&copy; 2021 <a href="https://unitoftime.github.io">Jacob Stewart</a></span>
+</footer>
+
+</body>
+
+</html>
