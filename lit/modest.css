@@ -234,6 +234,12 @@ pre {
     overflow-x: hidden;
 }
 
+code {
+    background-color: var(--inset-bg);
+    border-radius: 0.3em;
+    padding: 4px 5px 6px;
+}
+
 code.hljs {
     background-color: var(--inset-bg);
 }

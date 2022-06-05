@@ -14,6 +14,7 @@
     --border: #5b5d67;
 
     --header-height: 60px;
+    --header-height: 60px;
 
     /* --hljs-bg: #1c1d21; */
     /* --gap: 24px; */
@@ -107,4 +108,28 @@ a:hover {
 
 .main {
     margin-top: var(--header-height);
+}
+
+footer.footer {
+    left: 0;
+    height: var(--footer-height);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+footer.footer a {
+    border-radius: 8px;
+    color: var(--pri-accent);
+    font-sizae:.9rem;
+    font-weight:500;
+    gap: 0.4rem;
+    line-height: 1.1;
+    padding: 0.5rem;
+
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    text-decoration: none;
 }
