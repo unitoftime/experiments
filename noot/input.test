@@ -1,0 +1,3 @@
+func myFunc(x X, y Y) {
+     return (x + 5)
+}
