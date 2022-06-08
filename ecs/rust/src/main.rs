@@ -28,7 +28,7 @@ const iterations : i64 = 1000;
 const maxSpeed : f64 = 10.0;
 const maxCollider : f64 = 1.0;
 const maxPosition : f64 = 100.0;
-const collisionLimit :i32 = 100;
+const collisionLimit :i32 = 0;
 
 fn main() {
     bevy();
