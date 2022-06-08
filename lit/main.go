@@ -17,6 +17,7 @@ I'm importing some fairly standard packages, each of which is described below:
 */
 import (
 	// First we need to import some packages that can do file reading and writing
+	"fmt"
 	"bytes"
 	"io/fs"
 	"os"
@@ -63,6 +64,7 @@ func generatePackage(dir string) {
 
 	// Then we loop over the packages
 	for _, pkg := range packages {
+		fmt.Println("Parsing", pkg.Name)
 		tokenStart := pkg.Pos()
 
 		// We build a blog visitor (which implements the ast.Visitor interface).
@@ -85,7 +87,7 @@ func generatePackage(dir string) {
 		}
 
 		// Finally, we dump the BlogVisitor buffered data into the final HTML file.
-		bv.Output("out2.html")
+		bv.Output("output.html")
 	}
 }
 
