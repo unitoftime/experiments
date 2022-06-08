@@ -1,3 +1,6 @@
+// I got this file from https://stackoverflow.com/questions/14000534/what-is-most-idiomatic-way-to-create-an-iterator-in-go
+// See: https://ewencp.org/blog/golang-iterators/
+
 // Package iterators is a testbed for various iterator-like implementations
 // Save this to a file named iter_test.go and create a dummy file iter.go with just the line
 //
@@ -17,7 +20,7 @@
 //	BenchmarkStateful        300	   4010607 ns/op
 //	BenchmarkStatefulErr     300	   4887407 ns/op
 
-package iterators_test
+package iterators
 
 import (
 	"errors"
