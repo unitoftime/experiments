@@ -63,12 +63,14 @@ type Position struct {
 }
 
 type Lexer struct {
+	lastToken Token
 	pos    Position
 	reader *bufio.Reader
 }
 
 func NewLexer(reader io.Reader) *Lexer {
 	return &Lexer{
+		lastToken: ILLEGAL,
 		pos:    Position{line: 1, column: 0},
 		reader: bufio.NewReader(reader),
 	}
@@ -95,28 +97,44 @@ func (l *Lexer) Lex() (Position, Token, string) {
 
 		switch r {
 		case '\n':
+			// Decide if we want to add semicolon
+			if l.lastToken == IDENT || l.lastToken == RPAREN || l.lastToken == INT {
+				l.resetPosition()
+				return l.pos, SEMI, ";"
+			}
 			l.resetPosition()
 		case ';':
+			l.lastToken = SEMI
 			return l.pos, SEMI, ";"
 		case ',':
+			l.lastToken = COMMA
 			return l.pos, COMMA, ","
 		case '+':
+			l.lastToken = ADD
 			return l.pos, ADD, "+"
 		case '-':
+			l.lastToken = SUB
 			return l.pos, SUB, "-"
 		case '*':
+			l.lastToken = MUL
 			return l.pos, MUL, "*"
 		case '/':
+			l.lastToken = DIV
 			return l.pos, DIV, "/"
 		case '=':
+			l.lastToken = ASSIGN
 			return l.pos, ASSIGN, "="
 		case '(':
+			l.lastToken = LPAREN
 			return l.pos, LPAREN, "("
 		case ')':
+			l.lastToken = RPAREN
 			return l.pos, RPAREN, ")"
 		case '{':
+			l.lastToken = LBRACE
 			return l.pos, LBRACE, "}"
 		case '}':
+			l.lastToken = RBRACE
 			return l.pos, RBRACE, "}"
 		default:
 			if unicode.IsSpace(r) {
@@ -126,14 +144,18 @@ func (l *Lexer) Lex() (Position, Token, string) {
 				startPos := l.pos
 				l.backup()
 				lit := l.lexInt()
+				l.lastToken = INT
 				return startPos, INT, lit
 			} else if unicode.IsLetter(r) {
 				// backup and let lexIdent rescan the beginning of the ident
 				startPos := l.pos
 				l.backup()
 				lit := l.lexIdent()
+
+				l.lastToken = IDENT
 				return startPos, IDENT, lit
 			} else {
+				l.lastToken = ILLEGAL
 				return l.pos, ILLEGAL, string(r)
 			}
 		}

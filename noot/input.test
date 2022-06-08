@@ -1,3 +1,4 @@
 func myFunc(x X, y Y) {
-     return (x + 5)
+     return x + 5
 }
+

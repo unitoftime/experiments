@@ -101,6 +101,11 @@ func (p *Parser) ParseFuncNode(tokens *Tokens) Node {
 	// TODO return type
 
 	args := p.ParseArgNode(tokens)
+
+	// next = tokens.Next()
+	// if next != LBRACE {
+	// 	panic("MUST BE LBRACE")
+	// }
 	body := p.Parse(tokens)
 	f := FuncNode{
 		funcName: next.str,
@@ -109,6 +114,10 @@ func (p *Parser) ParseFuncNode(tokens *Tokens) Node {
 	}
 	return f
 }
+
+// func ParseBody(tokens *Tokens) Node {
+// 	todo you were replace Pares func with this to parse bodies separately
+// }
 
 type ReturnNode struct {
 	expr Node
@@ -182,6 +191,7 @@ type ExprNode struct {
 func (p *Parser) ParseExprNode(tokens *Tokens) Node {
 	next := tokens.Next()
 	if next.token == LPAREN {
+		// Case where we have a subexpression
 		op := p.ParseExprNode(tokens)
 		if tokens.Next().token != RPAREN {
 			panic("SHOULD BE RPAREN!!!!")
@@ -194,8 +204,13 @@ func (p *Parser) ParseExprNode(tokens *Tokens) Node {
 	expr := ExprNode{
 		ops: make([]Node, 0),
 	}
+	// Case where we have a (potentially long) flat expression
 	for {
 		if tokens.Peek().token == RPAREN {
+			break
+		}
+		if tokens.Peek().token == SEMI {
+			tokens.Next()
 			break
 		}
 
