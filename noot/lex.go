@@ -40,10 +40,10 @@ var tokens = []string{
 	COMMA:    ",",
 
 	// Infix ops
-	ADD: "+",
-	SUB: "-",
-	MUL: "*",
-	DIV: "/",
+	ADD: "ADD",
+	SUB: "SUB",
+	MUL: "MUL",
+	DIV: "DIV",
 
 	ASSIGN: "=",
 
@@ -84,7 +84,7 @@ func (l *Lexer) Lex() (Position, Token, string) {
 		r, _, err := l.reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				return l.pos, EOF, ""
+				return l.pos, EOF, "EOF"
 			}
 
 			// at this point there isn't much we can do, and the compiler

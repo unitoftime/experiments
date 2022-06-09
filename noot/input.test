@@ -1,4 +1,11 @@
-func myFunc(x X, y Y) {
-     return x + 5
+func FunctionA(x X, y Y) {
+     return x + 1
 }
 
+func FunctionB(x X, y Y) {
+     return (x + 1 * (1 + 2 + (2 + 2) + 4))
+}
+
+func FunctionC(x X, y Y) {
+     return x + 3
+}
