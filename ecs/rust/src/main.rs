@@ -197,3 +197,135 @@ fn update_position(mut query: Query<(&mut Position, &mut Velocity)>) {
         println!("count: {:?}", count);
     }
 }*/
+
+fn native() {
+    let mut ids = Vec::new();
+    let mut pos = Vec::new();
+    let mut vel = Vec::new();
+    let mut col = Vec::new();
+    let mut cnt = Vec::new();
+
+    let mut rng = rand::thread_rng();
+    for i in 0..size {
+        ids.push(i);
+        pos.push(Position{ x: maxPosition * rng.gen::<f64>(), y: maxPosition * rng.gen::<f64>() });
+        vel.push(Velocity{ x: maxSpeed * rng.gen::<f64>(), y: maxSpeed * rng.gen::<f64>() });
+        col.push(Collider{ radius: maxCollider * rng.gen::<f64>() });
+        cnt.push(Count{ count: 0 });
+    }
+
+    let fixed_time = 0.015;
+
+    for iterCount in 0..iterations {
+        let start = Instant::now();
+        for (i, _el) in ids.iter().enumerate() {
+            pos[i].x += vel[i].x * fixed_time;
+            pos[i].y += vel[i].y * fixed_time;
+
+            // Bump into the bounding rect
+            if pos[i].x <= 0.0 || pos[i].x >= maxPosition {
+                vel[i].x = -vel[i].x;
+            }
+            if pos[i].y <= 0.0 || pos[i].y >= maxPosition {
+                vel[i].y = -vel[i].y;
+            }
+        }
+
+        let mut deathCount = 0;
+        for (i, ent1) in ids.iter().enumerate() {
+            for (j, ent2) in ids.iter().enumerate() {
+                if ent1 == ent2 {
+                    continue;
+                }
+
+                let dx = pos[i].x - pos[j].x;
+                let dy = pos[i].y - pos[j].y;
+                let distSq = (dx * dx) + (dy * dy);
+
+                let dr = col[i].radius * col[j].radius;
+                let drSq = dr * dr;
+
+                if drSq > distSq {
+                    cnt[i].count += 1;
+                }
+
+                // TODO move to outer loop?
+                if collisionLimit > 0 && cnt[i].count > collisionLimit {
+                    deathCount += 1;
+                    break;
+                }
+            }
+        }
+
+        let duration = start.elapsed();
+        println!("{}, {:?}", iterCount, duration)
+    }
+}
+
+fn native2() {
+    let mut ids = Vec::new();
+    let mut posX = Vec::new();
+    let mut posY = Vec::new();
+    let mut velX = Vec::new();
+    let mut velY = Vec::new();
+    let mut col = Vec::new();
+    let mut cnt : Vec<i32> = Vec::new();
+
+    let mut rng = rand::thread_rng();
+    for i in 0..size {
+        ids.push(i);
+        posX.push(maxPosition * rng.gen::<f64>());
+        posY.push(maxPosition * rng.gen::<f64>());
+        velX.push(maxSpeed * rng.gen::<f64>());
+        velY.push(maxSpeed * rng.gen::<f64>());
+        col.push(maxCollider * rng.gen::<f64>());
+        cnt.push(0);
+    }
+
+    let fixed_time = 0.015;
+
+    for iterCount in 0..iterations {
+        let start = Instant::now();
+        for (i, _el) in ids.iter().enumerate() {
+            posX[i] += velX[i] * fixed_time;
+            posY[i] += velY[i] * fixed_time;
+
+            // Bump into the bounding rect
+            if posX[i] <= 0.0 || posX[i] >= maxPosition {
+                velX[i] = -velX[i];
+            }
+            if posY[i] <= 0.0 || posY[i] >= maxPosition {
+                velY[i] = -velY[i];
+            }
+        }
+
+        let mut deathCount = 0;
+        for (i, ent1) in ids.iter().enumerate() {
+            for (j, ent2) in ids.iter().enumerate() {
+                if ent1 == ent2 {
+                    continue;
+                }
+
+                let dx = posX[i] - posX[j];
+                let dy = posY[i] - posY[j];
+                let distSq = (dx * dx) + (dy * dy);
+
+                let dr = col[i] * col[j];
+                let drSq = dr * dr;
+
+                if drSq > distSq {
+                    cnt[i] += 1;
+                }
+
+                // TODO move to outer loop?
+                if collisionLimit > 0 && cnt[i] > collisionLimit {
+                    deathCount += 1;
+                    break;
+                }
+            }
+        }
+
+        let duration = start.elapsed();
+        println!("{}, {:?}", iterCount, duration)
+    }
+}
