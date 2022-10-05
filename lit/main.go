@@ -91,6 +91,12 @@ func generatePackage(dir string) {
 	}
 }
 
+
+//lit:command ref functionName
+
+
+
+
 /*
 I couldn't really figure out a good way to combine the formatting of each node type, because everything may need to do something very slightly different.
 
