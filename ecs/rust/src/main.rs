@@ -23,7 +23,7 @@ struct Count {
     count: i32,
 }
 
-const ITERATIONS : i64 = 1000;
+const ITERATIONS : i64 = 100;
 
 const MAX_POSITION : f64 = 100.0;
 const MAX_SPEED : f64 = 10.0;
@@ -164,7 +164,7 @@ fn native(size : i32, collision_limit : i32) {
 
     let mut rng = rand::thread_rng();
     for i in 0..size {
-        ids.push(i);
+        ids.push(i+2);
         pos.push(Position{ x: MAX_POSITION * rng.gen::<f64>(), y: MAX_POSITION * rng.gen::<f64>() });
         vel.push(Velocity{ x: MAX_SPEED * rng.gen::<f64>(), y: MAX_SPEED * rng.gen::<f64>() });
         col.push(Collider{ radius: MAX_COLLIDER * rng.gen::<f64>() });
@@ -176,37 +176,44 @@ fn native(size : i32, collision_limit : i32) {
     for iter_count in 0..ITERATIONS {
         let start = Instant::now();
         for (i, _el) in ids.iter().enumerate() {
-            pos[i].x += vel[i].x * fixed_time;
-            pos[i].y += vel[i].y * fixed_time;
+            let mut i_pos = &mut pos[i];
+            let mut i_vel = &mut vel[i];
+
+            i_pos.x += i_vel.x * fixed_time;
+            i_pos.y += i_vel.y * fixed_time;
 
             // Bump into the bounding rect
-            if pos[i].x <= 0.0 || pos[i].x >= MAX_POSITION {
-                vel[i].x = -vel[i].x;
+            if i_pos.x <= 0.0 || i_pos.x >= MAX_POSITION {
+                i_vel.x = -i_vel.x;
             }
-            if pos[i].y <= 0.0 || pos[i].y >= MAX_POSITION {
-                vel[i].y = -vel[i].y;
+            if i_pos.y <= 0.0 || i_pos.y >= MAX_POSITION {
+                i_vel.y = -i_vel.y;
             }
         }
 
         let mut death_count = 0;
         for (i, ent1) in ids.iter().enumerate() {
+            let i_pos = &pos[i];
+            let i_col = &col[i];
             for (j, ent2) in ids.iter().enumerate() {
+                let j_pos = &pos[j];
+                let j_col = &col[j];
+
                 if ent1 == ent2 {
                     continue;
                 }
 
-                let dx = pos[i].x - pos[j].x;
-                let dy = pos[i].y - pos[j].y;
+                let dx = i_pos.x - j_pos.x;
+                let dy = i_pos.y - j_pos.y;
                 let dist_squared = (dx * dx) + (dy * dy);
 
-                let dr = col[i].radius * col[j].radius;
+                let dr = i_col.radius * j_col.radius;
                 let dr_squared = dr * dr;
 
                 if dr_squared > dist_squared {
                     cnt[i].count += 1;
                 }
 
-                // TODO move to outer loop?
                 if collision_limit > 0 && cnt[i].count > collision_limit {
                     death_count += 1;
                     break;
@@ -230,7 +237,7 @@ fn native_split(size : i32, collision_limit : i32) {
 
     let mut rng = rand::thread_rng();
     for i in 0..size {
-        ids.push(i);
+        ids.push(i+2);
         pos_x.push(MAX_POSITION * rng.gen::<f64>());
         pos_y.push(MAX_POSITION * rng.gen::<f64>());
         vel_x.push(MAX_SPEED * rng.gen::<f64>());
@@ -240,7 +247,6 @@ fn native_split(size : i32, collision_limit : i32) {
     }
 
     let fixed_time = 0.015;
-
     for iter_count in 0..ITERATIONS {
         let start = Instant::now();
         for (i, _el) in ids.iter().enumerate() {
@@ -258,23 +264,30 @@ fn native_split(size : i32, collision_limit : i32) {
 
         let mut death_count = 0;
         for (i, ent1) in ids.iter().enumerate() {
+            let i_pos_x = &pos_x[i];
+            let i_pos_y = &pos_y[i];
+            let i_col = &col[i];
+
             for (j, ent2) in ids.iter().enumerate() {
+                let j_pos_x = &pos_x[j];
+                let j_pos_y = &pos_y[j];
+                let j_col = &col[j];
+
                 if ent1 == ent2 {
                     continue;
                 }
 
-                let dx = pos_x[i] - pos_x[j];
-                let dy = pos_y[i] - pos_y[j];
+                let dx = i_pos_x - j_pos_x;
+                let dy = i_pos_y - j_pos_y;
                 let dist_squared = (dx * dx) + (dy * dy);
 
-                let dr = col[i] * col[j];
+                let dr = i_col * j_col;
                 let dr_squared = dr * dr;
 
                 if dr_squared > dist_squared {
                     cnt[i] += 1;
                 }
 
-                // TODO move to outer loop?
                 if collision_limit > 0 && cnt[i] > collision_limit {
                     death_count += 1;
                     break;
@@ -284,6 +297,5 @@ fn native_split(size : i32, collision_limit : i32) {
 
         let duration = start.elapsed();
         println!("{} {:?}", iter_count, (duration.as_micros() as f64) / 1000000.0)
-//        println!("{} {:?}", iter_count, duration);
     }
 }
