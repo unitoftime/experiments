@@ -23,7 +23,7 @@ struct Count {
     count: i32,
 }
 
-const ITERATIONS : i64 = 100;
+const ITERATIONS : i64 = 50;
 
 const MAX_POSITION : f64 = 100.0;
 const MAX_SPEED : f64 = 10.0;
@@ -106,7 +106,7 @@ fn check_collision(mut commands: Commands,
             let dy = position.y - targ_pos.y;
             let dist_squared = (dx * dx) + (dy * dy);
 
-            let dr = collider.radius * targ_col.radius;
+            let dr = collider.radius + targ_col.radius;
             let dr_squared = dr * dr;
 
             if dr_squared > dist_squared {
@@ -122,6 +122,7 @@ fn check_collision(mut commands: Commands,
         }
     }
 
+//    println!("DeathCount: {}", death_count);
     let mut rng = rand::thread_rng();
     for _i in 0..death_count {
         commands.spawn()
@@ -130,6 +131,12 @@ fn check_collision(mut commands: Commands,
             .insert(Collider{ radius: MAX_COLLIDER * rng.gen::<f64>() })
             .insert(Count{ count: 0 });
     }
+
+//    let mut cnt = 0;
+//    for (_ent1, _position, _collider, _count) in query.iter() {
+//        cnt += 1;
+//    }
+//    println!("Ent Count: {}", cnt);
 }
 
 fn update_position(mut query: Query<(&mut Position, &mut Velocity)>) {
@@ -207,7 +214,7 @@ fn native(size : i32, collision_limit : i32) {
                 let dy = i_pos.y - j_pos.y;
                 let dist_squared = (dx * dx) + (dy * dy);
 
-                let dr = i_col.radius * j_col.radius;
+                let dr = i_col.radius + j_col.radius;
                 let dr_squared = dr * dr;
 
                 if dr_squared > dist_squared {
@@ -216,7 +223,6 @@ fn native(size : i32, collision_limit : i32) {
 
                 if collision_limit > 0 && cnt[i].count > collision_limit {
                     death_count += 1;
-                    break;
                 }
             }
         }
@@ -281,7 +287,7 @@ fn native_split(size : i32, collision_limit : i32) {
                 let dy = i_pos_y - j_pos_y;
                 let dist_squared = (dx * dx) + (dy * dy);
 
-                let dr = i_col * j_col;
+                let dr = i_col + j_col;
                 let dr_squared = dr * dr;
 
                 if dr_squared > dist_squared {
@@ -290,7 +296,6 @@ fn native_split(size : i32, collision_limit : i32) {
 
                 if collision_limit > 0 && cnt[i] > collision_limit {
                     death_count += 1;
-                    break;
                 }
             }
         }
