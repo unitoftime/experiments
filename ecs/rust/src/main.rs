@@ -1,33 +1,37 @@
 use bevy_ecs::prelude::*;
 use rand::prelude::*;
-use std::time::{Instant};
 use std::env;
+use std::time::Instant;
 
-#[derive(Component)]
-#[derive(Debug)]
-struct Position { x: f64, y: f64 }
+mod alt;
 
-#[derive(Component)]
-#[derive(Debug)]
-struct Velocity { x: f64, y: f64 }
+#[derive(Component, Debug)]
+struct Position {
+    x: f64,
+    y: f64,
+}
 
-#[derive(Component)]
-#[derive(Debug)]
+#[derive(Component, Debug)]
+struct Velocity {
+    x: f64,
+    y: f64,
+}
+
+#[derive(Component, Debug)]
 struct Collider {
     radius: f64,
 }
 
-#[derive(Component)]
-#[derive(Debug)]
+#[derive(Component, Debug)]
 struct Count {
     count: i32,
 }
 
-const ITERATIONS : i64 = 50;
+const ITERATIONS: i64 = 50;
 
-const MAX_POSITION : f64 = 100.0;
-const MAX_SPEED : f64 = 10.0;
-const MAX_COLLIDER : f64 = 1.0;
+const MAX_POSITION: f64 = 100.0;
+const MAX_SPEED: f64 = 10.0;
+const MAX_COLLIDER: f64 = 1.0;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -42,41 +46,53 @@ fn main() {
         native(size, collision_limit);
     } else if program == "nativeSplit" {
         native_split(size, collision_limit);
+    } else if program == "other" {
+        alt::native(size as usize, collision_limit as usize);
     }
 }
 
-fn bevy(size :i32, collision_limit :i32) {
-//    println!("starting");
+fn bevy(size: i32, collision_limit: i32) {
+    //    println!("starting");
 
     let mut world = World::default();
 
     // For loop
     let mut rng = rand::thread_rng();
     for _i in 0..size {
-        world.spawn()
-            .insert(Position{ x: MAX_POSITION * rng.gen::<f64>(), y: MAX_POSITION * rng.gen::<f64>() })
-            .insert(Velocity{ x: MAX_SPEED * rng.gen::<f64>(), y: MAX_SPEED * rng.gen::<f64>() })
-            .insert(Collider{ radius: MAX_COLLIDER * rng.gen::<f64>() })
-            .insert(Count{ count: 0 });
+        world
+            .spawn()
+            .insert(Position {
+                x: MAX_POSITION * rng.gen::<f64>(),
+                y: MAX_POSITION * rng.gen::<f64>(),
+            })
+            .insert(Velocity {
+                x: MAX_SPEED * rng.gen::<f64>(),
+                y: MAX_SPEED * rng.gen::<f64>(),
+            })
+            .insert(Collider {
+                radius: MAX_COLLIDER * rng.gen::<f64>(),
+            })
+            .insert(Count { count: 0 });
     }
 
     let mut schedule = Schedule::default();
 
     // Stages
-    schedule.add_stage("update", SystemStage::single_threaded()
-                       .with_system(update_position)
+    schedule.add_stage(
+        "update",
+        SystemStage::single_threaded().with_system(update_position),
     );
 
-    let collision = move | commands: Commands,
-                 query: Query<(Entity, &Position, &Collider, &mut Count)>,
-                 query2: Query<(Entity, &Position, &Collider)> | {
+    let collision = move |commands: Commands,
+                          query: Query<(Entity, &Position, &Collider, &mut Count)>,
+                          query2: Query<(Entity, &Position, &Collider)>| {
         check_collision(commands, query, query2, collision_limit);
     };
-    schedule.add_stage("collision", SystemStage::single_threaded()
-                       .with_system(collision)
-
+    schedule.add_stage(
+        "collision",
+        SystemStage::single_threaded().with_system(collision),
     );
-/*    schedule.add_stage("print", SystemStage::single_threaded()
+    /*    schedule.add_stage("print", SystemStage::single_threaded()
                        .with_system(print_count)
     );*/
 
@@ -88,12 +104,13 @@ fn bevy(size :i32, collision_limit :i32) {
     }
 }
 
-
 // https://bevy-cheatbook.github.io/programming/paramset.html
-fn check_collision(mut commands: Commands,
-                   mut query: Query<(Entity, &Position, &Collider, &mut Count)>,
-                   query2: Query<(Entity, &Position, &Collider)>,
-                   collision_limit : i32) {
+fn check_collision(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Position, &Collider, &mut Count)>,
+    query2: Query<(Entity, &Position, &Collider)>,
+    collision_limit: i32,
+) {
     let mut death_count = 0;
 
     for (ent1, position, collider, mut count) in query.iter_mut() {
@@ -122,21 +139,30 @@ fn check_collision(mut commands: Commands,
         }
     }
 
-//    println!("DeathCount: {}", death_count);
+    //    println!("DeathCount: {}", death_count);
     let mut rng = rand::thread_rng();
     for _i in 0..death_count {
-        commands.spawn()
-            .insert(Position{ x: MAX_POSITION * rng.gen::<f64>(), y: MAX_POSITION * rng.gen::<f64>() })
-            .insert(Velocity{ x: MAX_SPEED * rng.gen::<f64>(), y: MAX_SPEED * rng.gen::<f64>() })
-            .insert(Collider{ radius: MAX_COLLIDER * rng.gen::<f64>() })
-            .insert(Count{ count: 0 });
+        commands
+            .spawn()
+            .insert(Position {
+                x: MAX_POSITION * rng.gen::<f64>(),
+                y: MAX_POSITION * rng.gen::<f64>(),
+            })
+            .insert(Velocity {
+                x: MAX_SPEED * rng.gen::<f64>(),
+                y: MAX_SPEED * rng.gen::<f64>(),
+            })
+            .insert(Collider {
+                radius: MAX_COLLIDER * rng.gen::<f64>(),
+            })
+            .insert(Count { count: 0 });
     }
 
-//    let mut cnt = 0;
-//    for (_ent1, _position, _collider, _count) in query.iter() {
-//        cnt += 1;
-//    }
-//    println!("Ent Count: {}", cnt);
+    //    let mut cnt = 0;
+    //    for (_ent1, _position, _collider, _count) in query.iter() {
+    //        cnt += 1;
+    //    }
+    //    println!("Ent Count: {}", cnt);
 }
 
 fn update_position(mut query: Query<(&mut Position, &mut Velocity)>) {
@@ -162,7 +188,7 @@ fn update_position(mut query: Query<(&mut Position, &mut Velocity)>) {
     }
 }*/
 
-fn native(size : i32, collision_limit : i32) {
+fn native(size: i32, collision_limit: i32) {
     let mut ids = Vec::new();
     let mut pos = Vec::new();
     let mut vel = Vec::new();
@@ -171,11 +197,19 @@ fn native(size : i32, collision_limit : i32) {
 
     let mut rng = rand::thread_rng();
     for i in 0..size {
-        ids.push(i+2);
-        pos.push(Position{ x: MAX_POSITION * rng.gen::<f64>(), y: MAX_POSITION * rng.gen::<f64>() });
-        vel.push(Velocity{ x: MAX_SPEED * rng.gen::<f64>(), y: MAX_SPEED * rng.gen::<f64>() });
-        col.push(Collider{ radius: MAX_COLLIDER * rng.gen::<f64>() });
-        cnt.push(Count{ count: 0 });
+        ids.push(i + 2);
+        pos.push(Position {
+            x: MAX_POSITION * rng.gen::<f64>(),
+            y: MAX_POSITION * rng.gen::<f64>(),
+        });
+        vel.push(Velocity {
+            x: MAX_SPEED * rng.gen::<f64>(),
+            y: MAX_SPEED * rng.gen::<f64>(),
+        });
+        col.push(Collider {
+            radius: MAX_COLLIDER * rng.gen::<f64>(),
+        });
+        cnt.push(Count { count: 0 });
     }
 
     let fixed_time = 0.015;
@@ -228,22 +262,26 @@ fn native(size : i32, collision_limit : i32) {
         }
 
         let duration = start.elapsed();
-        println!("{} {:?}", iter_count, (duration.as_micros() as f64) / 1000000.0)
+        println!(
+            "{} {:?}",
+            iter_count,
+            (duration.as_micros() as f64) / 1000000.0
+        )
     }
 }
 
-fn native_split(size : i32, collision_limit : i32) {
+fn native_split(size: i32, collision_limit: i32) {
     let mut ids = Vec::new();
     let mut pos_x = Vec::new();
     let mut pos_y = Vec::new();
     let mut vel_x = Vec::new();
     let mut vel_y = Vec::new();
     let mut col = Vec::new();
-    let mut cnt : Vec<i32> = Vec::new();
+    let mut cnt: Vec<i32> = Vec::new();
 
     let mut rng = rand::thread_rng();
     for i in 0..size {
-        ids.push(i+2);
+        ids.push(i + 2);
         pos_x.push(MAX_POSITION * rng.gen::<f64>());
         pos_y.push(MAX_POSITION * rng.gen::<f64>());
         vel_x.push(MAX_SPEED * rng.gen::<f64>());
@@ -301,6 +339,10 @@ fn native_split(size : i32, collision_limit : i32) {
         }
 
         let duration = start.elapsed();
-        println!("{} {:?}", iter_count, (duration.as_micros() as f64) / 1000000.0)
+        println!(
+            "{} {:?}",
+            iter_count,
+            (duration.as_micros() as f64) / 1000000.0
+        )
     }
 }
