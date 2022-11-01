@@ -129,10 +129,10 @@ impl Entity {
 
     /// Process a possible collision between two entities
     /// If the two entities are not in contact, nothing changes
-    fn collide(&mut self, other: &mut Entity, collision_limit: usize, death_count: &mut usize) {
+    /// Only processes data for self, other is left unmodified
+    fn collide(&mut self, other: &Entity, collision_limit: usize, death_count: &mut usize) {
         if self.colliding(other) {
             self.inc_collision(collision_limit, death_count);
-            other.inc_collision(collision_limit, death_count);
         }
     }
 }
@@ -154,11 +154,18 @@ pub fn native(size: usize, collision_limit: usize) {
             .iter_mut()
             .for_each(|entity| entity.update_pos(fixed_dt));
 
-        for i in 0..size - 1 {
-            let (left, right) = entities.split_at_mut(i + 1);
-            let e0 = &mut left[i];
-            for e1 in right {
-                e0.collide(e1, collision_limit, &mut death_count);
+        let raw_entities = entities.as_mut_ptr();
+
+        for i in 0..size {
+            unsafe {
+                let e0 = &mut *raw_entities.offset(i as isize);
+                for j in 0..size {
+                    if i == j {
+                        continue;
+                    }
+                    let e1 = &*raw_entities.offset(j as isize);
+                    e0.collide(e1, collision_limit, &mut death_count);
+                }
             }
         }
 
