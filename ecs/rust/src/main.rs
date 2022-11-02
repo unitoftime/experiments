@@ -46,7 +46,7 @@ fn main() {
         native(size, collision_limit);
     } else if program == "nativeSplit" {
         native_split(size, collision_limit);
-    } else if program == "other" {
+    } else if program == "fennewald" {
         alt::native(size as usize, collision_limit as usize);
     }
 }
